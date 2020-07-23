@@ -14,7 +14,7 @@ def train(movies):
     #                       usecols=['userId', 'movieId', 'rating', 'timestamp'])
     # Reading movies file
     if movies is None:
-        movies = pd.read_csv('movies.csv', sep=',', encoding='latin-1', usecols=['movieId', 'title', 'genres'])
+        movies = pd.read_csv('../data/movies.csv', sep=',', encoding='latin-1', usecols=['movieId', 'title', 'genres'])
     df_movies = movies
     # Define a TF-IDF Vectorizer Object.
     tfidf_movies_genres = TfidfVectorizer(token_pattern='[a-zA-Z0-9\-]+')
@@ -30,7 +30,7 @@ def train(movies):
 # train(None)
 
 
-def get_recommendations_based_on_genres(movie_title, cosine_sim_movies):
+def get_recommendations_based_on_genres(movie_title):
     """
     Calculates top 2 movies to recommend based on given movie titles genres.
     :param movie_title: title of movie to be taken for base of recommendation
@@ -39,7 +39,9 @@ def get_recommendations_based_on_genres(movie_title, cosine_sim_movies):
     """
     # Get the index of the movie that matches the title
     idx_movie = df_movies.loc[df_movies['title'].isin([movie_title])]
+    # print('1:', idx_movie)
     idx_movie = idx_movie.index
+    # print('2:', idx_movie)
 
     # Get the pairwsie similarity scores of all movies with that movie
     sim_scores_movies = list(enumerate(cosine_sim_movies[idx_movie][0]))
@@ -48,16 +50,17 @@ def get_recommendations_based_on_genres(movie_title, cosine_sim_movies):
     sim_scores_movies = sorted(sim_scores_movies, key=lambda x: x[1], reverse=True)
 
     # Get the scores of the 10 most similar movies
-    sim_scores_movies = sim_scores_movies[0:10]
-
+    sim_scores_movies = sim_scores_movies[0:6]
+    # print('3:', sim_scores_movies)
     # Get the movie indices
     movie_indices = [i[0] for i in sim_scores_movies if not i[0] == idx_movie]
 
     # Return the top 1 most similar movies
-    return df_movies['title'].iloc[movie_indices[0]]
+    result =  df_movies['title'].iloc[movie_indices]
+    return result.to_string(index=False)
 
 
 # my_movie = input("Enter the name and the year of the movie, forexample, Toy Story (1995):")
-#
 # recommend_to_watch = get_recommendations_based_on_genres(my_movie)
-# print("Based on " + my_movie + ", " + "we recommend you to watch " + recommend_to_watch + ".")
+# print ("Based on " + my_movie + ", " + "we recommend you to watch: ")
+# print (recommend_to_watch)
