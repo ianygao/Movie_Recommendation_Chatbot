@@ -7,8 +7,7 @@ import pandas as pd
 import json
 import os
 import logging
-from pymongo import MongoClient
-from models import ContentBasedFiltering
+from models import GenresBasedFiltering
 from models import ItemBasedCollaborativeFiltering
 
 app = Flask(__name__)  # initialising the flask app with the name 'app'
@@ -17,18 +16,18 @@ app = Flask(__name__)  # initialising the flask app with the name 'app'
 @app.before_first_request
 def startup():
     global df_movies, cosine_sim_movies, ratings_df, movie_matrix_UII
-    # init content-based model
+    # init genres-based model
     movies = pd.read_csv('data/movies.csv', sep=',', encoding='latin-1', usecols=['movieId', 'title', 'genres'])
-    df_movies, cosine_sim_movies = ContentBasedFiltering.train(movies)
+    df_movies, cosine_sim_movies = GenresBasedFiltering.train(movies)
     # init item-based model
     u_data = pd.read_csv('data/u.data', sep='\t', names=['user_id', 'movie_id', 'rating', 'timestamp'])
     movie_titles = pd.read_csv('data/Movie_Titles.csv', encoding='unicode_escape')
     ratings_df, movie_matrix_UII = ItemBasedCollaborativeFiltering.train(u_data, movie_titles)
-    print("before_first_request Test success!")
-    logging.info("before_first_request Test success!")
+    print("before_first_request function executed!")
+    logging.info("before_first_request function executed!")
 
 
-# geting and sending response to dialogflow
+# getting request from/sending response to dialogflow
 @app.route('/webhook', methods=['POST'])
 @cross_origin()
 def webhook():
@@ -36,9 +35,9 @@ def webhook():
     res = processRequest(req)
     res = json.dumps(res, indent=4)
     print(res)
-    r = make_response(res)
-    r.headers['Content-Type'] = 'application/json'
-    return r
+    response = make_response(res)
+    response.headers['Content-Type'] = 'application/json'
+    return response
 
 
 # processing the request from dialogflow
@@ -49,14 +48,12 @@ def processRequest(req):
     query_text = result.get("queryText")
     parameters = result.get("parameters")
     movie_name = parameters.get("movie_name")
-    cust_contact = parameters.get("cust_contact")
-    cust_email = parameters.get("cust_email")
     if intent == 'movie_language':
         return {
             "fulfillmentText": "Test success! Intent: movie_language",
         }
     elif intent == 'ContentBasedRecommendation':
-        rcmd_movies = ContentBasedFiltering.get_recommendations_based_on_genres(movie_name)
+        rcmd_movies = GenresBasedFiltering.get_recommendations_based_on_genres(movie_name)
         webhookresponse = "We recommend you to watch: \n" + rcmd_movies + "\n"
         return {
             "fulfillmentMessages": [

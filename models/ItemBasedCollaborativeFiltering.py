@@ -25,7 +25,7 @@ def train(u_data, movie_titles):
     return ratings_df, movie_matrix_UII
 
 
-# train(None, None)
+train(None, None)
 
 
 def get_recommendations_based_on_rating(movie_title):
@@ -41,6 +41,7 @@ def get_recommendations_based_on_rating(movie_title):
     result_df = correlation_movie_user_rating[correlation_movie_user_rating['number_of_ratings'] > 20].sort_values(
         by='Correlation with user rating', ascending=False).head(6)
     # obtain data from the second row(filter out the same movie)
+    print(result_df.iloc[0, 0][0])
     result = result_df.iloc[1:, 0].keys().tolist()
     result_str = ''
     for i in result:
@@ -50,4 +51,4 @@ def get_recommendations_based_on_rating(movie_title):
     return result_str
 
 
-# get_recommendations_based_on_rating('Toy Story (1995)')
+get_recommendations_based_on_rating('Batman: The Dark Knight Returns, Part 1 (2012)')
